@@ -1,0 +1,4 @@
+name: ArenaPlugin
+version: '${project.version}'
+main: rip.plugins.arenaplugin.ArenaPlugin
+api-version: '1.19'
