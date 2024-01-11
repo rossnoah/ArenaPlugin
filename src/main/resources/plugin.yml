@@ -2,3 +2,8 @@ name: ArenaPlugin
 version: '${project.version}'
 main: rip.plugins.arenaplugin.ArenaPlugin
 api-version: '1.19'
+commands:
+  test:
+    description: Test command
+    usage: /<command>
+    aliases: [t]
