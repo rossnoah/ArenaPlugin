@@ -6,6 +6,7 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.math.BlockVector3;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -31,8 +32,6 @@ public class TestCommand implements CommandExecutor {
         }
 
         Player player = (Player) commandSender;
-
-
         if(strings.length == 0){
             player.sendMessage("Please specify a file!");
             return true;
@@ -47,15 +46,15 @@ public class TestCommand implements CommandExecutor {
             player.sendMessage("File does not exist!");
             return true;
         }
-    
 
 
-
-        Clipboard clipboard;
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>[PRE] Pasting schematic..."));
 
         ClipboardFormat format = ClipboardFormats.findByFile(file);
         try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
-            clipboard = reader.read();
+
+            Clipboard clipboard = reader.read();
+
 
             World playerWorld = player.getWorld();
             Location playerLocation = player.getLocation();
@@ -63,11 +62,19 @@ public class TestCommand implements CommandExecutor {
             com.sk89q.worldedit.world.World world = new com.sk89q.worldedit.bukkit.BukkitWorld(playerWorld);
             BlockVector3 origin = BlockVector3.at(playerLocation.getX(), playerLocation.getY(), playerLocation.getZ());
 
+            long start = System.currentTimeMillis();
+
             EditSession editSession = clipboard.paste(world, origin);
+
+            int blockCount = editSession.getBlockChangeCount();
 
             editSession.commit();
 
+            long end = System.currentTimeMillis();
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Successfully pasted schematic!"));
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Blocks changed: <white>"+blockCount));
 
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Time taken: <white>"+(end-start)+"ms"));
         } catch (FileNotFoundException e) {
             player.sendMessage("File not found!");
             return true;
@@ -75,8 +82,6 @@ public class TestCommand implements CommandExecutor {
             player.sendMessage("Error reading file!");
             return true;
         }
-
-
 
 
 return true;

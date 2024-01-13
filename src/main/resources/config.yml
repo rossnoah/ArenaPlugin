@@ -1,0 +1,5 @@
+
+# This is the default configuration file for the plugin.
+
+#the world in which arenas will be created
+world: "world"
