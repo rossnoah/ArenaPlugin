@@ -4,7 +4,9 @@ import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.plugin.java.JavaPlugin;
 import rip.plugins.arenaplugin.commands.GenerateArenaCommand;
 import rip.plugins.arenaplugin.commands.TestCommand;
@@ -13,7 +15,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public final class ArenaPlugin extends JavaPlugin {
@@ -27,12 +32,26 @@ public final class ArenaPlugin extends JavaPlugin {
         arenaPlugin = this;
         this.saveDefaultConfig();
 
+        //create the world for the arena
+        String worldName = this.getConfig().getString("world");
+        World world = Bukkit.createWorld(new WorldCreator(worldName));
+
+        world.setGameRule(org.bukkit.GameRule.DO_DAYLIGHT_CYCLE, false);
+        world.setGameRule(org.bukkit.GameRule.DO_WEATHER_CYCLE, false);
+        world.setGameRule(org.bukkit.GameRule.DO_MOB_SPAWNING, false);
+        world.setGameRule(org.bukkit.GameRule.DO_IMMEDIATE_RESPAWN, true);
+
+        world.setTime(6000);
+
+        getServer().getPluginManager().registerEvents(new RejoinListener(), this);
+
+
 //        this.getCommand("test").setExecutor(new TestCommand());
 //        this.getCommand("generatearena").setExecutor(new GenerateArenaCommand());
 //        this.getCommand("generatearena").setTabCompleter(new GenerateArenaCommand());
 
 
-        World world = this.getServer().getWorld(this.getConfig().getString("world"));
+//        World world = this.getServer().getWorld(this.getConfig().getString("world"));
 
         if(world == null){
             this.getLogger().severe("Arena world not found!");
@@ -76,6 +95,28 @@ public final class ArenaPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+
+        //delete the folder for the arena world
+       World world = this.getServer().getWorld(this.getConfig().getString("world"));
+         if(world != null){
+              Bukkit.unloadWorld(world, false);
+              File worldFolder = world.getWorldFolder();
+              try {
+                  deleteFolder(worldFolder.toPath());
+              } catch (IOException e) {
+                  e.printStackTrace();
+              }
+         }
+
+    }
+
+    private void deleteFolder(Path path) throws IOException {
+        if (Files.exists(path)) {
+            Files.walk(path)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        }
     }
 
 

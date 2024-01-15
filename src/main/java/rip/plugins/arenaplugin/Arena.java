@@ -1,6 +1,7 @@
 package rip.plugins.arenaplugin;
 
 import org.bukkit.Location;
+import org.bukkit.World;
 
 import java.util.UUID;
 
@@ -28,17 +29,32 @@ public class Arena {
 
     public Location getSpectatorLocation() {
         Location currentLocation = this.spectatorLocation.clone(); // Clone to avoid modifying the original
-        while (currentLocation.getY() > 0) {
-            if (currentLocation.getBlock().getType().isEmpty()) {
-                return currentLocation; // Return this location if the block is solid
-            }
-            currentLocation.setY(currentLocation.getY() - 1); // Decrease Y to check the block below
+        World world = currentLocation.getWorld();
+        int x = currentLocation.getBlockX();
+        int y = world.getMaxHeight();
+        int z = currentLocation.getBlockZ();
+        while (isBlockAboveAir(world, x, y, z))
+        {
+            y--;
+            currentLocation.setY(y);
         }
-        currentLocation.setY(10); // Set Y to 10 if no solid block was found
+        if(y < 0)
+        {
+            y = 10;
+            currentLocation.setY(y);
+        }
         return currentLocation;
 
     }
 
+    private boolean isBlockAboveAir(World world, final int x, final int y, final int z)
+    {
+        if (y > world.getMaxHeight())
+        {
+            return true;
+        }
+        return world.getBlockAt(x, y, z).getType().isCollidable();
+    }
     public Location getBlueSpawn() {
         return blueSpawn;
     }
